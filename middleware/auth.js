@@ -1,6 +1,6 @@
 const jwt = require('jsonwebtoken');
 const Barber = require('../models/Barber');
-const Customer = require('../models/Customer'); // Assuming you have a Customer model
+const Customer = require('../models/Customer');
 
 module.exports = async (req, res, next) => {
   const token = req.header('Authorization')?.replace('Bearer ', '');
@@ -12,9 +12,8 @@ module.exports = async (req, res, next) => {
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-    // Determine the type of actor (barber or customer)
     let user;
-    if (decoded.role === 'barber') {
+    if (['owner', 'assistant'].includes(decoded.role)) {
       user = await Barber.findById(decoded.id);
       if (!user) {
         return res.status(401).json({ success: false, message: 'Barber not found or token is not valid' });

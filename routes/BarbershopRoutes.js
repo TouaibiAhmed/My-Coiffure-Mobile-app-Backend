@@ -9,4 +9,9 @@ router.get('/getBarbershop/:id', barberShopController.getBarberShop);
 router.delete('/deleteBarbershop/:id', auth, barberShopController.deleteBarberShop);
 router.post('/addReview/:id', auth, barberShopController.addReview);
 
+
+
+router.get('/getBarbershops',  barberShopController.getAllBarberShops);
+
+
 module.exports = router;

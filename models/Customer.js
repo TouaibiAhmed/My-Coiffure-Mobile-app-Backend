@@ -10,8 +10,8 @@ const customerSchema = new mongoose.Schema({
     type: String,
     required: true,
     unique: true,
+    sparse: false,  
     lowercase: true,
-    trim: true,
   },
   CustomerPassword: {
     type: String,

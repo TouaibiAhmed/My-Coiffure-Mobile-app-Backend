@@ -9,4 +9,10 @@ router.get('/Getprofile', auth, barberController.getProfile);
 router.put('/Updateprofile', auth, barberController.updateProfile);
 router.post('/logout', auth, barberController.logoutBarber);
 
+router.post('/AddAssistant', auth, barberController.addAssistantBarber);
+
+
+
+
+
 module.exports = router;

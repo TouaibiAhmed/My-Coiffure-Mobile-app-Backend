@@ -22,6 +22,7 @@ const barbershopRoutes = require('./routes/BarbershopRoutes');
 
 const reservationRoutes = require('./routes/ReservationRoutes');
 
+const timetableRoutes = require('./routes/TimetableRoutes');
 
 
 
@@ -72,7 +73,7 @@ app.use('/api/reservation', reservationRoutes);
 
 app.use('/api/barbershop', barbershopRoutes);
 
-
+app.use('/api/timetable', timetableRoutes);
 
 
 

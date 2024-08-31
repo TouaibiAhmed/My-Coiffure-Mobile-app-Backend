@@ -56,15 +56,18 @@ exports.loginBarber = async (req, res) => {
     }
 
     // Create a token
-    const token = jwt.sign({ id: barber._id }, process.env.JWT_SECRET, {
-      expiresIn: '1h',
-    });
+    const token = jwt.sign(
+      { id: barber._id, role: barber.role },
+      process.env.JWT_SECRET,
+      { expiresIn: '1h' }
+    );
 
     res.status(200).json({ success: true, token, data: barber });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
 };
+
 
 // Consult barber profile
 exports.getProfile = async (req, res) => {

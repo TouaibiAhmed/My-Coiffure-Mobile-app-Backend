@@ -2,7 +2,6 @@ const BarberShop = require('../models/BarberShop');
 const Barber = require('../models/Barber');
 
 
-
 // Add a new BarberShop
 exports.addBarberShop = async (req, res) => {
   const { shopName, location, shopImage, description, gallery } = req.body;
@@ -106,9 +105,52 @@ exports.addReview = async (req, res) => {
       return res.status(404).json({ success: false, message: 'BarberShop not found' });
     }
 
+    // Update review score and increment number of ratings
     barberShop.review = review;
+    barberShop.numberOfRatings += 1; // Increment the number of ratings
+
     await barberShop.save();
     res.status(200).json({ success: true, data: barberShop });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+
+// Get all BarberShops with additional details
+exports.getAllBarberShops = async (req, res) => {
+  try {
+    // Get the current date
+    const currentDate = new Date();
+    const dayOfWeek = currentDate.toLocaleString('en-US', { weekday: 'long' }); // e.g., "Monday"
+
+    // Retrieve all barbershops
+    const barberShops = await BarberShop.find()
+      .populate('barbers')
+      .exec();
+
+    // Format the barbershops with working times for the current date
+    const formattedBarberShops = barberShops.map(barberShop => {
+      // Find the timetable entry for the current day
+      const todayTimetable = barberShop.timetable.find(timetable => 
+        timetable.days.includes(dayOfWeek)
+      );
+
+      return {
+        shopName: barberShop.shopName,
+        location: barberShop.location,
+        shopImage: barberShop.shopImage,
+        review: barberShop.review,
+        numberOfRatings: barberShop.numberOfRatings,
+        isOpen: barberShop.isOpen,
+        workingTimes: todayTimetable ? {
+          startTime: todayTimetable.startTime,
+          endTime: todayTimetable.endTime
+        } : null
+      };
+    });
+
+    res.status(200).json({ success: true, data: formattedBarberShops });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }

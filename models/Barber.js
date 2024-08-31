@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const availabilitySchema = require('./BarberAvailability'); // Ensure this path is correct
 
 const barberSchema = new mongoose.Schema({
   BarberName: {
@@ -17,39 +18,31 @@ const barberSchema = new mongoose.Schema({
     unique: true,
     lowercase: true,
     trim: true,
-    match: [/\S+@\S+\.\S+/, 'Veuillez fournir une adresse email valide']
+    match: [/\S+@\S+\.\S+/, 'Veuillez fournir une adresse email valide'],
   },
   BarberPassword: {
     type: String,
-    required: [true, 'Le mot de passe est obligatoire']
+    required: [true, 'Le mot de passe est obligatoire'],
   },
   BarberphoneNumber: {
     type: String,
-    required: false,
     trim: true,
   },
   BarberImage: {
     type: String,
-    required: false, 
   },
-
   barberShop: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'BarberShop',
-    required: false,
   },
-
-
   role: {
     type: String,
     enum: ['owner', 'assistant'],
-    required: false,
     default: 'owner',
   },
-
-
+  availability: [availabilitySchema], // Ensure the availabilitySchema is correctly defined and imported
 }, {
-  timestamps: true
+  timestamps: true,
 });
 
 const Barber = mongoose.model('Barber', barberSchema);

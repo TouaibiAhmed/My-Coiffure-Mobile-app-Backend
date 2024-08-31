@@ -4,39 +4,45 @@ const jwt = require('jsonwebtoken');
 
 // Register a new customer
 exports.registerCustomer = async (req, res) => {
-
-  console.log(req.body); // Add this line to log the request body
-
-
   const { CustomerName, CustomerEmail, CustomerPassword, CustomerAddress, CustomerPhoneNumber } = req.body;
 
+  // Basic validation
+  if (!CustomerName || !CustomerEmail || !CustomerPassword) {
+      return res.status(400).json({ success: false, message: 'Name, email, and password are required' });
+  }
+
   try {
-    // Check if the customer already exists
-    let customer = await Customer.findOne({ CustomerEmail });
-    if (customer) {
-      return res.status(400).json({ success: false, message: 'Customer already exists' });
-    }
+      // Additional check for null email values
+      if (CustomerEmail === null || CustomerEmail === undefined) {
+          return res.status(400).json({ success: false, message: 'Email cannot be null or undefined' });
+      }
 
-    // Hash the password
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(CustomerPassword, salt);
+      let customer = await Customer.findOne({ CustomerEmail });
+      if (customer) {
+          return res.status(400).json({ success: false, message: 'Customer already exists' });
+      }
 
-    // Create new customer
-    customer = new Customer({
-      CustomerName,
-      CustomerEmail,
-      CustomerPassword: hashedPassword,
-      CustomerAddress,
-      CustomerPhoneNumber,
-    });
+      const salt = await bcrypt.genSalt(10);
+      const hashedPassword = await bcrypt.hash(CustomerPassword, salt);
 
-    await customer.save();
+      customer = new Customer({
+          CustomerName,
+          CustomerEmail,
+          CustomerPassword: hashedPassword,
+          CustomerAddress,
+          CustomerPhoneNumber,
+      });
 
-    res.status(201).json({ success: true, data: customer });
+      await customer.save();
+      res.status(201).json({ success: true, data: customer });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+      console.error('Error in registering customer:', error);
+      res.status(500).json({ success: false, message: error.message, error });
   }
 };
+
+
+
 
 // Login customer
 exports.loginCustomer = async (req, res) => {
