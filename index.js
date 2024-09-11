@@ -6,6 +6,7 @@ const mongoose = require('mongoose');
 const session = require('express-session');
 const bodyParser = require('body-parser');
 
+const cors = require('cors');
 
 
 
@@ -36,6 +37,13 @@ const port = process.env.PORT || 3000;
 
 const connectDB = require('./config/db'); 
 
+
+
+app.use(cors({
+  origin: '*', // Allow all origins
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+}));
 
 
 
@@ -79,5 +87,5 @@ app.use('/api/timetable', timetableRoutes);
 
 
 app.listen(port, () => {
-  console.log(`Example app listening at http://localhost:${port}`);
+  console.log(`App listening at http://localhost:${port}`);
 });

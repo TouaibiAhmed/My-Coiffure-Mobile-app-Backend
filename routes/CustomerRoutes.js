@@ -9,4 +9,7 @@ router.get('/Getprofile', auth, customerController.getProfile);
 router.put('/Updateprofile', auth, customerController.updateProfile);
 router.post('/logout', auth, customerController.logoutCustomer);
 
+router.post('/change-password', auth, customerController.changePassword);
+
+
 module.exports = router;

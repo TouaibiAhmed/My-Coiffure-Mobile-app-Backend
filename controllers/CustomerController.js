@@ -4,11 +4,15 @@ const jwt = require('jsonwebtoken');
 
 // Register a new customer
 exports.registerCustomer = async (req, res) => {
-  const { CustomerName, CustomerEmail, CustomerPassword, CustomerAddress, CustomerPhoneNumber } = req.body;
+  const { CustomerName, CustomerEmail, CustomerPassword, ConfirmPassword, CustomerAddress, CustomerPhoneNumber, CustomerImg } = req.body;
 
   // Basic validation
-  if (!CustomerName || !CustomerEmail || !CustomerPassword) {
-      return res.status(400).json({ success: false, message: 'Name, email, and password are required' });
+  if (!CustomerName || !CustomerEmail || !CustomerPassword || !ConfirmPassword) {
+      return res.status(400).json({ success: false, message: 'Name, email, password, and confirm password are required' });
+  }
+
+  if (CustomerPassword !== ConfirmPassword) {
+      return res.status(400).json({ success: false, message: 'Passwords do not match' });
   }
 
   try {
@@ -31,6 +35,7 @@ exports.registerCustomer = async (req, res) => {
           CustomerPassword: hashedPassword,
           CustomerAddress,
           CustomerPhoneNumber,
+          CustomerImg
       });
 
       await customer.save();
@@ -40,6 +45,7 @@ exports.registerCustomer = async (req, res) => {
       res.status(500).json({ success: false, message: error.message, error });
   }
 };
+
 
 
 
@@ -75,19 +81,23 @@ exports.loginCustomer = async (req, res) => {
 // Consult customer profile
 exports.getProfile = async (req, res) => {
   try {
-    const customer = await Customer.findById(req.customer.id);
+    // req.customer is attached by the auth middleware
+    const customer = req.customer;
+    
     if (!customer) {
       return res.status(404).json({ success: false, message: 'Customer not found' });
     }
+
     res.status(200).json({ success: true, data: customer });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
 };
 
+
 // Update customer profile
 exports.updateProfile = async (req, res) => {
-  const { CustomerName, CustomerEmail, CustomerAddress, CustomerPhoneNumber } = req.body;
+  const { CustomerName, CustomerEmail, CustomerAddress, CustomerPhoneNumber, CustomerImg } = req.body;
   try {
     const customer = await Customer.findById(req.customer.id);
     if (!customer) {
@@ -96,8 +106,9 @@ exports.updateProfile = async (req, res) => {
 
     customer.CustomerName = CustomerName || customer.CustomerName;
     customer.CustomerEmail = CustomerEmail || customer.CustomerEmail;
-    customer.address = CustomerAddress || customer.CustomerAddress;
+    customer.CustomerAddress = CustomerAddress || customer.CustomerAddress;
     customer.CustomerPhoneNumber = CustomerPhoneNumber || customer.CustomerPhoneNumber;
+    customer.CustomerImg = CustomerImg || customer.CustomerImg;
 
     await customer.save();
 
@@ -106,6 +117,7 @@ exports.updateProfile = async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 };
+
 
 // Logout customer
 exports.logoutCustomer = async (req, res) => {
@@ -120,5 +132,40 @@ exports.logoutCustomer = async (req, res) => {
     });
   } catch (error) {
     res.status(500).send({ message: "Error during logout", error: error.message });
+  }
+};
+
+// Change customer password
+exports.changePassword = async (req, res) => {
+  const { currentPassword, newPassword, confirmPassword } = req.body;
+
+  try {
+    // Validate new passwords
+    if (newPassword !== confirmPassword) {
+      return res.status(400).json({ success: false, message: 'New passwords do not match' });
+    }
+
+    const customer = await Customer.findById(req.customer.id);
+    if (!customer) {
+      return res.status(404).json({ success: false, message: 'Customer not found' });
+    }
+
+    // Check the current password
+    const isMatch = await bcrypt.compare(currentPassword, customer.CustomerPassword);
+    if (!isMatch) {
+      return res.status(400).json({ success: false, message: 'Current password is incorrect' });
+    }
+
+    // Hash the new password
+    const salt = await bcrypt.genSalt(10);
+    const hashedNewPassword = await bcrypt.hash(newPassword, salt);
+
+    // Update the password
+    customer.CustomerPassword = hashedNewPassword;
+    await customer.save();
+
+    res.status(200).json({ success: true, message: 'Password updated successfully' });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
   }
 };

@@ -27,6 +27,10 @@ const customerSchema = new mongoose.Schema({
     required: false,
     trim: true,
   },
+  CustomerImg: {
+    type: String,
+    required: false,
+  },
 }, {
   timestamps: true
 });

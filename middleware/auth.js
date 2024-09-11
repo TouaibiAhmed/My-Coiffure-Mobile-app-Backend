@@ -1,5 +1,4 @@
 const jwt = require('jsonwebtoken');
-const Barber = require('../models/Barber');
 const Customer = require('../models/Customer');
 
 module.exports = async (req, res, next) => {
@@ -10,24 +9,17 @@ module.exports = async (req, res, next) => {
   }
 
   try {
+    // Verify the token
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-    let user;
-    if (['owner', 'assistant'].includes(decoded.role)) {
-      user = await Barber.findById(decoded.id);
-      if (!user) {
-        return res.status(401).json({ success: false, message: 'Barber not found or token is not valid' });
-      }
-      req.barber = user; // Attach the barber to req
-    } else if (decoded.role === 'customer') {
-      user = await Customer.findById(decoded.id);
-      if (!user) {
-        return res.status(401).json({ success: false, message: 'Customer not found or token is not valid' });
-      }
-      req.customer = user; // Attach the customer to req
-    } else {
-      return res.status(401).json({ success: false, message: 'Invalid role in token' });
+    // Find the customer by ID
+    const customer = await Customer.findById(decoded.id);
+    if (!customer) {
+      return res.status(401).json({ success: false, message: 'Customer not found or token is not valid' });
     }
+
+    // Attach the customer to the request
+    req.customer = customer;
 
     next();
   } catch (err) {
